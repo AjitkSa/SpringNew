@@ -43,6 +43,18 @@ import javax.ws.rs.core.Response;
 import Rest.WebService.data.MemberRepository;
 import Rest.WebService.model.Member;
 import Rest.WebService.service.MemberRegistration;
+import io.swagger.v3.oas.annotations.ExternalDocumentation;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.servers.Server;
 
 /**
  * JAX-RS Example
@@ -51,6 +63,27 @@ import Rest.WebService.service.MemberRegistration;
  */
 @Path("/members")
 @RequestScoped
+@OpenAPIDefinition(
+        info = @Info(
+                title = "Swagger Sample",
+                version = "0.0",
+                description = "My API",
+                license = @License(name = " ", url = " "),
+                contact = @Contact(url = " ", name = "Fred", email = " ")
+        ),
+        
+        externalDocs = @ExternalDocumentation(description = "definition docs desc", url = "www.google.com"),
+        security = {
+                @SecurityRequirement(name = "req 1", scopes = {"a", "b"}),
+                @SecurityRequirement(name = "req 2", scopes = {"b", "c"})
+        },
+        servers = {
+                @Server(
+                        description = "local Server",
+                        url = "http://localhost:8081/WebService")
+                        
+        }
+)
 public class MemberResourceRESTService {
 
     @Inject
@@ -74,7 +107,27 @@ public class MemberResourceRESTService {
     @GET
     @Path("/{id:[0-9][0-9]*}")
     @Produces(MediaType.APPLICATION_JSON)
-    public Member lookupMemberById(@PathParam("id") long id) {
+    @Operation(summary = "Find members by ID",tags = {"members"},
+    description = "Returns a members when 0 < ID <= 10.  ID > 10 or nonintegers will simulate API error conditions",
+    responses = {
+            @ApiResponse(description = "The members", content = @Content(
+                    schema = @Schema(implementation = Member.class)
+            )),
+            @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
+            @ApiResponse(responseCode = "404", description = "members not found")
+    })
+    
+    
+    public Member lookupMemberById(	@Parameter(
+            description = "ID of members that needs to be fetched",
+            schema = @Schema(
+                    type = "integer",
+                    format = "int64",
+                    description = "param ID of members that needs to be fetched"
+            ),
+            required = true)
+    		
+    		@PathParam("id") long id) {
         Member member = repository.findById(id);
         if (member == null) {
             throw new WebApplicationException(Response.Status.NOT_FOUND);

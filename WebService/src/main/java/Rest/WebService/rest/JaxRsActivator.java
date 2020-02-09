@@ -16,8 +16,17 @@
  */
 package Rest.WebService.rest;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import javax.servlet.ServletRequest;
+import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
+
+import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
 
 /**
  * A class extending {@link Application} and annotated with @ApplicationPath is the Java EE 6 "no XML" approach to activating
@@ -30,4 +39,32 @@ import javax.ws.rs.core.Application;
 @ApplicationPath("/rest")
 public class JaxRsActivator extends Application {
     /* class body intentionally left blank */
+	public JaxRsActivator() {
+		
+	}
+	public JaxRsActivator(ServletRequest servletRequest, ServletResponse servletResponse) {
+
+        HttpServletRequest request = (HttpServletRequest) servletRequest;
+        System.out.println("CORSFilter HTTP Request: " + request.getMethod());
+ 
+        // Authorize (allow) all domains to consume the content
+        ((HttpServletResponse) servletResponse).addHeader("Access-Control-Allow-Origin", "*");
+        ((HttpServletResponse) servletResponse).addHeader("Access-Control-Allow-Methods","GET, OPTIONS, HEAD, PUT, POST");
+ 
+        HttpServletResponse resp = (HttpServletResponse) servletResponse;
+ 
+        // For HTTP OPTIONS verb/method reply with ACCEPTED status code -- per CORS handshake
+        if (request.getMethod().equals("OPTIONS")) {
+            resp.setStatus(HttpServletResponse.SC_ACCEPTED);
+            return;
+        }
+		
+	}
+	@Override
+    public Set<Class<?>> getClasses() {
+		Set<Class<?>> sets = new HashSet<Class<?>>();
+		sets.add(MemberResourceRESTService.class);
+		sets.add(OpenApiResource.class);
+		return sets;
+    }	
 }
