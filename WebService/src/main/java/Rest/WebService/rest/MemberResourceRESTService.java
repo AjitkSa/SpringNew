@@ -43,18 +43,11 @@ import javax.ws.rs.core.Response;
 import Rest.WebService.data.MemberRepository;
 import Rest.WebService.model.Member;
 import Rest.WebService.service.MemberRegistration;
-import io.swagger.v3.oas.annotations.ExternalDocumentation;
-import io.swagger.v3.oas.annotations.OpenAPIDefinition;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.info.Contact;
-import io.swagger.v3.oas.annotations.info.Info;
-import io.swagger.v3.oas.annotations.info.License;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
-import io.swagger.v3.oas.annotations.servers.Server;
 
 /**
  * JAX-RS Example
@@ -63,27 +56,7 @@ import io.swagger.v3.oas.annotations.servers.Server;
  */
 @Path("/members")
 @RequestScoped
-@OpenAPIDefinition(
-        info = @Info(
-                title = "Swagger Sample",
-                version = "0.0",
-                description = "My API",
-                license = @License(name = " ", url = " "),
-                contact = @Contact(url = " ", name = "Fred", email = " ")
-        ),
-        
-        externalDocs = @ExternalDocumentation(description = "definition docs desc", url = "www.google.com"),
-        security = {
-                @SecurityRequirement(name = "req 1", scopes = {"a", "b"}),
-                @SecurityRequirement(name = "req 2", scopes = {"b", "c"})
-        },
-        servers = {
-                @Server(
-                        description = "local Server",
-                        url = "http://localhost:8081/WebService")
-                        
-        }
-)
+
 public class MemberResourceRESTService {
 
     @Inject
@@ -100,6 +73,18 @@ public class MemberResourceRESTService {
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
+    @Operation(summary = "Find all members",tags = {"members"},
+    description = "Returns list of members",
+    responses = {
+            @ApiResponse(description = "The members", content = @Content(
+                    schema = @Schema(implementation = Member.class)
+            )),
+            @ApiResponse(responseCode = "200", description = "Success|OK"),
+            @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
+            @ApiResponse(responseCode = "404", description = "members not found")
+    })
+    
+    
     public List<Member> listAllMembers() {
         return repository.findAllOrderedByName();
     }
@@ -113,6 +98,7 @@ public class MemberResourceRESTService {
             @ApiResponse(description = "The members", content = @Content(
                     schema = @Schema(implementation = Member.class)
             )),
+            @ApiResponse(responseCode = "200", description = "Success|OK"),
             @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
             @ApiResponse(responseCode = "404", description = "members not found")
     })
@@ -142,7 +128,19 @@ public class MemberResourceRESTService {
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
-    public Response createMember(Member member) {
+    @Operation(summary = "Create a members",tags = {"members"},
+    description = "user can add a member from here",
+    responses = {
+    		@ApiResponse(responseCode = "200", description = "Success|OK"),
+            @ApiResponse(responseCode = "400", description = "Invalid ID supplied"),
+            @ApiResponse(responseCode = "404", description = "members not found"),
+            @ApiResponse(description = "The members", content = @Content(
+                    schema = @Schema(implementation = Member.class)
+            ))
+            
+    })
+    
+    public Response createMember(@Parameter(description = "Members that needs to be added", required = true)Member member) {
 
         Response.ResponseBuilder builder = null;
 

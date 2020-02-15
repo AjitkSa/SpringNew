@@ -27,6 +27,13 @@ import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
 import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
+import io.swagger.v3.oas.annotations.ExternalDocumentation;
+import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Contact;
+import io.swagger.v3.oas.annotations.info.Info;
+import io.swagger.v3.oas.annotations.info.License;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import io.swagger.v3.oas.annotations.servers.Server;
 
 /**
  * A class extending {@link Application} and annotated with @ApplicationPath is the Java EE 6 "no XML" approach to activating
@@ -37,6 +44,27 @@ import io.swagger.v3.jaxrs2.integration.resources.OpenApiResource;
  * </p>
  */
 @ApplicationPath("/rest")
+@OpenAPIDefinition(
+        info = @Info(
+                title = "Swagger Sample",
+                version = "0.0",
+                description = "My API",
+                license = @License(name = " ", url = " "),
+                contact = @Contact(url = " ", name = "Fred", email = " ")
+        ),
+        
+        externalDocs = @ExternalDocumentation(description = "definition docs desc", url = "www.google.com"),
+        security = {
+                @SecurityRequirement(name = "req 1", scopes = {"a", "b"}),
+                @SecurityRequirement(name = "req 2", scopes = {"b", "c"})
+        },
+        servers = {
+                @Server(
+                        description = "local Server",
+                        url = "http://localhost:8081/WebService")
+                        
+        }
+)
 public class JaxRsActivator extends Application {
     /* class body intentionally left blank */
 	public JaxRsActivator() {
