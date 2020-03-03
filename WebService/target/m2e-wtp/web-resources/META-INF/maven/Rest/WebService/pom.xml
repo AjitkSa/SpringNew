@@ -53,8 +53,9 @@
         <version.war.plugin>2.1.1</version.war.plugin>
 
         <!-- maven-compiler-plugin -->
-        <maven.compiler.target>1.6</maven.compiler.target>
-        <maven.compiler.source>1.6</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <swagger-ui.version>3.17.0</swagger-ui.version>
     </properties>
 
 
@@ -192,6 +193,32 @@
             <artifactId>arquillian-protocol-servlet</artifactId>
             <scope>test</scope>
         </dependency>
+        
+        <!-- https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-jaxrs2 -->
+<dependency>
+    <groupId>io.swagger.core.v3</groupId>
+    <artifactId>swagger-jaxrs2</artifactId>
+    <version>2.1.1</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/io.swagger.core.v3/swagger-jaxrs2-servlet-initializer -->
+<dependency>
+    <groupId>io.swagger.core.v3</groupId>
+    <artifactId>swagger-jaxrs2-servlet-initializer</artifactId>
+    <version>2.1.1</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/com.fasterxml.jackson.jaxrs/jackson-jaxrs-json-provider -->
+<dependency>
+    <groupId>com.fasterxml.jackson.jaxrs</groupId>
+    <artifactId>jackson-jaxrs-json-provider</artifactId>
+    <version>2.8.11</version>
+</dependency>
+<!-- https://mvnrepository.com/artifact/javax.servlet/javax.servlet-api -->
+<dependency>
+    <groupId>javax.servlet</groupId>
+    <artifactId>javax.servlet-api</artifactId>
+    <version>4.0.1</version>
+    <scope>provided</scope>
+</dependency>
 
     </dependencies>
 
@@ -200,20 +227,101 @@
             given to the generated war, and hence the context root) -->
         <finalName>${project.artifactId}</finalName>
         <plugins>
+            
             <plugin>
+				<groupId>com.googlecode.maven-download-plugin</groupId>
+				<artifactId>download-maven-plugin</artifactId>
+				<version>1.2.1</version>
+				<executions>
+					<execution>
+						<id>swagger-ui</id>
+						<goals>
+							<goal>wget</goal>
+						</goals>
+						<configuration>
+							<skipCache>true</skipCache>
+							<url>https://github.com/swagger-api/swagger-ui/archive/master.tar.gz</url>
+							<unpack>true</unpack>
+							<outputDirectory>${project.build.directory}</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>	
+			<plugin>
                 <artifactId>maven-war-plugin</artifactId>
                 <version>${version.war.plugin}</version>
                 <configuration>
+                	<webResources combine.children="append">
+                		<resource>
+                            <directory>${project.build.directory}/swagger-ui-master</directory>
+                            <includes>
+                                <include>**/*.*</include>
+                            </includes>
+                            <targetPath>swagger-ui</targetPath>
+                        </resource>
+                	</webResources>
                     <!-- Java EE 6 doesn't require web.xml, Maven needs to catch up! -->
                     <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
             </plugin>
-            <!-- The JBoss AS plugin deploys your war to a local JBoss EAP container -->
-            <!-- To use, run: mvn package jboss-as:deploy -->
+            <!-- The JBoss wildfly plugin deploys your war to a local JBoss wildfly container -->
+            <!-- To use, run: mvn package wildfly:deploy -->
             <plugin>
-                <groupId>org.jboss.as.plugins</groupId>
-                <artifactId>jboss-as-maven-plugin</artifactId>
-                <version>${version.jboss.maven.plugin}</version>
+                <groupId>org.wildfly.plugins</groupId>
+                <artifactId>wildfly-maven-plugin</artifactId>
+                <version>2.1.0.Beta1</version>
+            </plugin>
+			<!-- <plugin>
+        		<artifactId>maven-resources-plugin</artifactId>
+        		<version>2.6</version>
+        		<executions>
+          			<execution>
+            			<id>copy-resources</id>
+            			<phase>validate</phase>
+            			<goals>
+              				<goal>copy-resources</goal>
+            			</goals>
+            			<configuration>
+              				<outputDirectory>target/${project.artifactId}-${project.version}</outputDirectory>
+              				<resources>
+                				<resource>
+                  					<directory>${project.build.directory}/swagger-ui-master/dist</directory>
+                  					<filtering>true</filtering>
+                  					<excludes>
+                    					<exclude>index.html</exclude>
+                  					</excludes>
+                				</resource>
+              				</resources>
+              				<replacements>
+                        	<replacement>
+                            	<token>"https://petstore.swagger.io/v2/swagger.json"</token>
+                            	<value>location.protocol + '//' + location.hostname+':'+location.port+'/${project.artifactId}/rest/openapi.json'</value>
+                        	</replacement>
+                    		</replacements>
+            			</configuration>
+          			</execution>
+        		</executions>
+      		</plugin> -->
+      		<plugin>
+                <groupId>com.google.code.maven-replacer-plugin</groupId>
+                <artifactId>replacer</artifactId>
+                <executions>
+                    <execution>
+                        <phase>prepare-package</phase>
+                        <goals>
+                            <goal>replace</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <file>${project.build.directory}/swagger-ui-master/dist/index.html</file>
+                    <replacements>
+                        <replacement>
+                            <token>"https://petstore.swagger.io/v2/swagger.json"</token>
+                            <value>location.protocol + '//' + location.hostname+':'+location.port+'/${project.artifactId}/rest/openapi.json'</value>
+                        </replacement>
+                    </replacements>
+                </configuration>
             </plugin>
         </plugins>
     </build>
